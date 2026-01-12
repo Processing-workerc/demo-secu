@@ -3,104 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Démonstration Sécurité</title>
+    <title>Démo Sécurité</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; color: #333; }
-        .container { background: white; padding: 2rem; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 90%; max-width: 400px; text-align: center; transition: all 0.3s; }
+        /* Design simple et propre */
+        body { font-family: sans-serif; background-color: #f4f4f9; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); text-align: center; width: 90%; max-width: 400px; }
+        input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box;}
+        button { width: 100%; padding: 10px; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; margin-top: 10px;}
         
-        /* Styles pour le mode Sécurisé */
-        .mode-secure { border-top: 10px solid #2ecc71; }
-        .badge-secure { background: #e8f8f5; color: #27ae60; padding: 5px 10px; border-radius: 20px; font-size: 0.8em; font-weight: bold; display: inline-block; margin-bottom: 15px; }
+        /* Couleurs selon le mode */
+        .secure-mode .header { color: #27ae60; font-weight: bold; margin-bottom: 15px; border: 2px solid #27ae60; padding: 10px; border-radius: 5px; background: #eafaf1; }
+        .secure-mode button { background-color: #27ae60; }
         
-        /* Styles pour le mode Non Sécurisé */
-        .mode-insecure { border-top: 10px solid #e74c3c; }
-        .badge-insecure { background: #fdedec; color: #c0392b; padding: 5px 10px; border-radius: 20px; font-size: 0.8em; font-weight: bold; display: inline-block; margin-bottom: 15px; }
+        .insecure-mode .header { color: #c0392b; font-weight: bold; margin-bottom: 15px; border: 2px solid #c0392b; padding: 10px; border-radius: 5px; background: #fdedec; }
+        .insecure-mode button { background-color: #c0392b; }
 
-        h2 { margin: 0 0 20px 0; }
-        input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; border: none; border-radius: 8px; color: white; font-size: 16px; cursor: pointer; margin-top: 10px; }
-        .btn-secure { background-color: #2ecc71; }
-        .btn-insecure { background-color: #e74c3c; }
-
-        /* La zone de simulation "Hacker" */
-        #hacker-view { margin-top: 25px; background: #2c3e50; color: #ecf0f1; padding: 15px; border-radius: 8px; text-align: left; font-family: 'Courier New', monospace; font-size: 0.85em; display: none; }
-        .label { color: #f1c40f; font-weight: bold; }
+        .console { background: #333; color: #0f0; text-align: left; padding: 10px; margin-top: 20px; font-family: monospace; font-size: 12px; border-radius: 5px; display: none; }
     </style>
 </head>
 <body>
 
-<div id="card" class="container">
-    <div id="badge"></div>
-    <h2 id="title">Portail Entreprise</h2>
+<div class="card" id="mainCard">
+    <div id="statusHeader" class="header">Chargement...</div>
     
-    <input type="text" id="username" placeholder="Nom d'utilisateur" required>
-    <div id="password-container"></div> <button id="action-btn" onclick="simulateLogin()">Se connecter</button>
+    <h3>Connexion Salarié</h3>
+    <input type="text" id="user" placeholder="Identifiant" required>
+    <div id="passArea"></div>
+    <button onclick="login()" id="btnAction">Se connecter</button>
 
-    <div id="hacker-view">
-        <div style="border-bottom: 1px solid #7f8c8d; margin-bottom: 10px; padding-bottom: 5px;">
-            🕵️ <strong>Vue du Pirate (Interception)</strong>
-        </div>
-        <div id="network-data"></div>
-    </div>
+    <div id="hackerConsole" class="console"></div>
 </div>
 
 <script>
-    // Récupération du paramètre dans l'URL (secure ou insecure)
-    const urlParams = new URLSearchParams(window.location.search);
-    const mode = urlParams.get('mode');
+    // 1. Récupération du mode dans l'URL
+    const params = new URLSearchParams(window.location.search);
+    const mode = params.get('mode');
+    
+    const card = document.getElementById('mainCard');
+    const header = document.getElementById('statusHeader');
+    const passArea = document.getElementById('passArea');
+    const btn = document.getElementById('btnAction');
 
-    const card = document.getElementById('card');
-    const badge = document.getElementById('badge');
-    const btn = document.getElementById('action-btn');
-    const passContainer = document.getElementById('password-container');
-
-    // Configuration de l'interface selon le mode
+    // 2. Configuration de l'affichage
     if (mode === 'secure') {
-        card.classList.add('mode-secure');
-        badge.className = 'badge-secure';
-        badge.innerHTML = '🔒 CONNEXION CHIFFRÉE (HTTPS)';
-        btn.classList.add('btn-secure');
-        btn.innerText = 'Connexion Sécurisée';
-        // Ajout du champ mot de passe
-        passContainer.innerHTML = '<input type="password" id="password" placeholder="Mot de passe confidentiel" value="Secret123">';
+        card.classList.add('secure-mode');
+        header.innerHTML = "🔒 MODE SÉCURISÉ (HTTPS)";
+        passArea.innerHTML = '<input type="password" id="pass" placeholder="Mot de passe">';
+        btn.innerText = "Connexion Sécurisée";
     } else {
-        card.classList.add('mode-insecure');
-        badge.className = 'badge-insecure';
-        badge.innerHTML = '⚠️ NON SÉCURISÉ (HTTP)';
-        btn.classList.add('btn-insecure');
-        btn.innerText = 'Connexion Rapide (Risquée)';
-        // Pas de champ mot de passe ici
+        // Par défaut ou si mode=insecure
+        card.classList.add('insecure-mode');
+        header.innerHTML = "⚠️ MODE NON SÉCURISÉ";
+        passArea.innerHTML = ''; // Pas de mot de passe
+        btn.innerText = "Connexion Rapide";
     }
 
-    function simulateLogin() {
-        const user = document.getElementById('username').value;
-        const hackerView = document.getElementById('hacker-view');
-        const networkData = document.getElementById('network-data');
+    // 3. Action du bouton
+    function login() {
+        const username = document.getElementById('user').value;
+        const consoleDiv = document.getElementById('hackerConsole');
         
-        if(!user) { alert("Merci d'entrer un nom"); return; }
+        if(!username) { alert("Mettez un nom !"); return; }
 
-        hackerView.style.display = 'block';
+        consoleDiv.style.display = 'block';
 
         if (mode === 'secure') {
-            // Simulation de données chiffrées (charabia)
-            const encrypted = btoa(user + "Secret123").substring(0, 15) + "...";
-            networkData.innerHTML = `
-                <span class="label">Statut :</span> Chiffré (AES-256)<br>
-                <span class="label">Données interceptées :</span><br>
-                ${encrypted}8x4<br>
-                <br>
-                <em>✅ Le pirate ne peut rien lire.</em>
-            `;
+            consoleDiv.innerHTML = "PIRATE INTERCEPTE : <br> > #x8s!kL9... (Données illisibles)";
+            consoleDiv.style.color = "#888"; // Gris car échec du pirate
         } else {
-            // Simulation de données en clair
-            networkData.innerHTML = `
-                <span class="label">Statut :</span> Texte Clair<br>
-                <span class="label">Données interceptées :</span><br>
-                User: "${user}"<br>
-                Auth: "OK_NO_PASS"<br>
-                <br>
-                <em>❌ Le pirate a volé votre identité !</em>
-            `;
+            consoleDiv.innerHTML = "PIRATE INTERCEPTE : <br> > USER: " + username + "<br> > PASS: (Vide) <br> > ACCES: TOTAL";
+            consoleDiv.style.color = "#0f0"; // Vert hacker
         }
     }
 </script>
